@@ -1,138 +1,186 @@
-#
-#
-# This is the Tic-Tac-Toe game
-#
-#
+"""
+This is a two player Tic-tac-toe game
 
-def printboard(number=0, mark=' ', matrix=None):
-    """ Prints the board with the desired location and mark """
+The players take turns to input their marks on the board.
+The board is represented as a common number pad:
 
-    while (number not in range(1, 10)) and mark != ' ':
-        number = int(input('\nSorry, insert a number between 1 and 9: '))
-    
-    print('')
-    y = 5
-    win = 0
-    
-    if number != 0:
-        matrix[number-1] = mark
+ 7 | 8 | 9 
+-----------
+ 4 | 5 | 6 
+-----------
+ 1 | 2 | 3
 
-    for x in range(1, 10):        
-        print(f" { matrix[y+x] } ", end="")      
-        if x in {3, 6}:
-            print(f"\n-----------")
-            y -= 6
-        elif x != 9:
-            print("|", end="")
-    
-    if all(v == matrix[0] for v in matrix[0:3]):
-        win = 1
-    elif all(v == matrix[3] for v in matrix[3:6]):
-        win = 1
-    elif all(v == matrix[6] for v in matrix[6:9]):
-        win = 1
-        
-    elif all(v == matrix[0] for v in matrix[0:10:3]):
-        win = 1
-    elif all(v == matrix[1] for v in matrix[1:10:3]):
-        win = 1
-    elif all(v == matrix[2] for v in matrix[2:10:3]):
-        win = 1
-    
-    elif all(v == matrix[0] for v in matrix[0:10:4]):
-        win = 1
-    elif all(v == matrix[2] for v in matrix[2:7:2]):
-        win = 1
+TODO:
+    1. Check for ties
+    2. Change to OOP 
+"""
 
-    print('\n')
-    return (win, matrix)     
+import os
+import textwrap
+from typing import Literal
 
-def first_selection(): # Ask for first location - Returns chosen number
+STARTING_BOARD = list(range(1, 10))
 
-    # Ask for location of first move.
-    global matrix, game_won
-    [game_won, matrix] = printboard(matrix=list(range(1, 10))) # Initialize board
-    matrix_number = input("Ok Player 1, please choose the number from above "
-                          f"where you want '{p1marker}' to be inserted: ")
 
-    # If selected number is not correct, ask again.
-    while matrix_number not in str(set(range(1, 10))):
-        matrix_number = input(f"\nSorry, insert a number between 1 and 9: ")
-    
-    # Return the chosen number.
-    return int(matrix_number)
+def print_board(board: list) -> None:
+    """Prints the game board
 
-def play_again():
-    # Ask for input
-    replay = input('Do you want to play agian - Yes/No? ').lower()
+    Args:
+        board (list): The game board
+    """
 
-    # Check if input is correct, otherwise ask again
-    while replay not in {'yes', 'no'}:
-        print("Please, enter 'Yes' or 'No'")
-        replay = input('Do you want to play agian - Yes/No? ').lower()
-    
-    # If yes, then play again
-    if replay == 'yes':
-        global matrix_number 
-        matrix_number = first_selection() # Save chosen number location
+    print(
+        textwrap.dedent(
+            f"""
+             {board[6]} | {board[7]} | {board[8]}
+            -----------
+             {board[3]} | {board[4]} | {board[5]}
+            -----------
+             {board[0]} | {board[1]} | {board[2]}
+            """
+        )
+    )
+
+
+def select_mark() -> Literal["X", "O"]:
+    """Asks a player to select a mark ("x|o") to play with
+
+    Returns:
+        Literal["X", "O"]: player mark
+    """
+
+    player_mark = None
+    while player_mark not in {"X", "O"}:
+        if player_mark is not None:
+            print("\nWe're not off to a good start here!")
+
+        player_mark = input(
+            "\tPlayer 1, please pick a mark ('X' or 'O') and hit 'Enter': "
+        ).upper()
+
+    return player_mark
+
+
+def get_next_player_move(player_mark: str) -> int:
+    """Prompts a player for their next mark location
+
+    Args:
+        player_mark (str)
+
+    Returns:
+        int: Player's chosen mark location
+    """
+
+    while True:
+        try:
+            player_move = int(
+                input(f"\tPlayer '{player_mark}', your turn. Where's your move? ")
+            )
+
+            if not 1 <= player_move <= 9:
+                raise ValueError
+            return player_move - 1
+
+        except ValueError:
+            print("\nInvalid input. Please enter a number between 1 and 9!")
+
+
+def check_win(board: list) -> bool:
+    """Checks if a player has won the game
+
+    Args:
+        board (list): The game board to check
+
+    Returns:
+        bool: Whether a player has won
+    """
+
+    WINNING_COMBINATIONS = [
+        # Rows:
+        (0, 1, 2),
+        (3, 4, 5),
+        (6, 7, 8),
+        # Columns
+        (0, 3, 6),
+        (1, 4, 7),
+        (2, 5, 8),
+        # Diagonals
+        (0, 4, 8),
+        (2, 4, 6),
+    ]
+
+    for combination in WINNING_COMBINATIONS:
+        if board[combination[0]] == board[combination[1]] == board[combination[2]]:
+            return True
+    return False
+
+
+def check_tie(board: list) -> bool:
+    """Checks if the game has ended on a tie
+
+    Args:
+        board (list): The game board to check
+
+    Returns:
+        bool: Whether a tie exists
+    """
+
+    for mark in board:
+        if mark not in {"X", "O"}:
+            return False
+    return True
+
+
+def should_play_again() -> bool:
+    """Prompts player to check if they would like to keep playing
+
+    Returns:
+        bool: Whether user wants to play
+    """
+
+    replay = None
+    while replay not in {"y", "n"}:
+        if replay is not None:
+            print("Please, enter 'y' or 'n'")
+
+        replay = input("Do you want to play again? - y or n: ").lower()
+
+    return replay == "y"
+
+
+def main():
+    # Clear the terminal
+    if os.name == "posix":
+        os.system("clear")
     else:
-        print("\nSee you later!\n")
-    
-    # Return the answer
-    return replay
+        os.system("cls")
 
-def selectmarker(): # Ask which marker players wants
-    # Select marker
-    p1marker = input("\tPlayer 1, please pick a marker 'X' or 'O' and hit Enter: ").upper()
+    # Introduce and initialize the game
+    print("Welcome to Tic Tac Toe!")
+    player_mark = select_mark()
+    board = STARTING_BOARD.copy()
 
-    # Check if it is the correct input
-    while not p1marker in {'X', 'O'}:
-        print("\nWe are not starting good in here! I said:")
-        p1marker = input("\tPlease pick a marker 'X' or 'O' and hit Enter: ").upper()
+    while True:
+        # Player move
+        print_board(board)
+        player_move = get_next_player_move(player_mark)
+        board[player_move] = player_mark
 
-    if p1marker == 'X': 
-        p2marker = 'O'
-    else: 
-        p2marker = 'X'
+        if (win := check_win(board)) or check_tie(board):
+            print_board(board)
+            if win:
+                print(f"\t***** Player '{player_mark}', you win! *****\n")
+            else:
+                print(f"\t***** It's a tie! *****\n")
 
-    return p1marker, p2marker
+            if should_play_again():
+                board = STARTING_BOARD.copy()
+            else:
+                print("\nSee you later!\n")
+                break
 
-# Introduce and Initialize the game
-replay = 'yes'
-print('\n'*50) 
-print("Welcome to Tic Tac Toe!")
+        player_mark = "O" if player_mark == "X" else "X"
 
-# Start selection of markers
-[p1marker, p2marker] = selectmarker()
 
-# Make first move
-matrix_number = first_selection()
-
-# Start Loop
-while replay == 'yes':
-
-# Player 1 insertion:
-    # Print board with player 1 selection
-    [game_won, matrix] = printboard(matrix_number, p1marker, matrix) 
-
-    # Check if player 1 wins
-    if game_won:
-        print('\n\n\t***** Player 1, you win! *****\n')
-        replay = play_again()
-        continue
-        
-# Player 2 insertion:
-    # Ask for player 2 desired input
-    matrix_number = int(input("Player 2, your turn. What's your move? "))
-
-    # Print board with player 2 selection
-    [game_won, matrix] = printboard(matrix_number, p2marker, matrix)
-
-    # Check if player 2 wins
-    if game_won:
-        print('\n\n\t***** Player 2, you win! *****\n')
-        replay = play_again()
-        continue
-
-# Ask for player 1 desired input
-    matrix_number = int(input("Player 1, your turn. What's your move? "))
+if __name__ == "__main__":
+    main()
