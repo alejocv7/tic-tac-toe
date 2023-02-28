@@ -4,25 +4,23 @@ This is a two player Tic-tac-toe game
 The players take turns to input their marks on the board.
 The board is represented as a common number pad:
 
- 7 | 8 | 9 
+ 7 | 8 | 9
 -----------
- 4 | 5 | 6 
+ 4 | 5 | 6
 -----------
  1 | 2 | 3
 
 TODO:
-    1. Check for ties
-    2. Change to OOP 
+    2. Change to OOP
 """
 
 import os
 import textwrap
-from typing import Literal
 
-STARTING_BOARD = list(range(1, 10))
+STARTING_BOARD = [str(num) for num in range(1, 10)]
 
 
-def print_board(board: list) -> None:
+def print_board(board: list[str]) -> None:
     """Prints the game board
 
     Args:
@@ -40,25 +38,6 @@ def print_board(board: list) -> None:
             """
         )
     )
-
-
-def select_mark() -> Literal["X", "O"]:
-    """Asks a player to select a mark ("x|o") to play with
-
-    Returns:
-        Literal["X", "O"]: player mark
-    """
-
-    player_mark = None
-    while player_mark not in {"X", "O"}:
-        if player_mark is not None:
-            print("\nWe're not off to a good start here!")
-
-        player_mark = input(
-            "\tPlayer 1, please pick a mark ('X' or 'O') and hit 'Enter': "
-        ).upper()
-
-    return player_mark
 
 
 def get_next_player_move(player_mark: str) -> int:
@@ -85,7 +64,7 @@ def get_next_player_move(player_mark: str) -> int:
             print("\nInvalid input. Please enter a number between 1 and 9!")
 
 
-def check_win(board: list) -> bool:
+def check_win(board: list[str]) -> bool:
     """Checks if a player has won the game
 
     Args:
@@ -96,7 +75,7 @@ def check_win(board: list) -> bool:
     """
 
     WINNING_COMBINATIONS = [
-        # Rows:
+        # Rows
         (0, 1, 2),
         (3, 4, 5),
         (6, 7, 8),
@@ -115,7 +94,7 @@ def check_win(board: list) -> bool:
     return False
 
 
-def check_tie(board: list) -> bool:
+def check_tie(board: list[str]) -> bool:
     """Checks if the game has ended on a tie
 
     Args:
@@ -148,7 +127,7 @@ def should_play_again() -> bool:
     return replay == "y"
 
 
-def main():
+def main() -> None:
     # Clear the terminal
     if os.name == "posix":
         os.system("clear")
@@ -157,8 +136,8 @@ def main():
 
     # Introduce and initialize the game
     print("Welcome to Tic Tac Toe!")
-    player_mark = select_mark()
-    board = STARTING_BOARD.copy()
+    player_mark = "X"
+    board = STARTING_BOARD[:]
 
     while True:
         # Player move
@@ -171,10 +150,10 @@ def main():
             if win:
                 print(f"\t***** Player '{player_mark}', you win! *****\n")
             else:
-                print(f"\t***** It's a tie! *****\n")
+                print("\t***** It's a tie! *****\n")
 
             if should_play_again():
-                board = STARTING_BOARD.copy()
+                board = STARTING_BOARD[:]
             else:
                 print("\nSee you later!\n")
                 break
