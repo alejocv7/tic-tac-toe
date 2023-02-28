@@ -1,0 +1,24 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "tic_tac_toe"
+version = "1.0.0"
+
+[tool.pytest.ini_options]
+addopts = [
+    "--import-mode=importlib",
+    "--cov=tic_tac_toe",
+    "--cov-report=xml",
+    "--cov-report=term"
+]
+
+[tool.mypy]
+strict = true
+
+[tool.hatch.build.targets.sdist]
+include = [
+  "/src",
+  "/tests",
+]
