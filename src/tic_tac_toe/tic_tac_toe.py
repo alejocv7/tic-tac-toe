@@ -9,157 +9,141 @@ The board is represented as a common number pad:
  4 | 5 | 6
 -----------
  1 | 2 | 3
-
-TODO:
-    2. Change to OOP
 """
 
 import os
 import textwrap
 
-STARTING_BOARD = [str(num) for num in range(1, 10)]
 
+class TicTacToe:
+    STARTING_BOARD = [str(num) for num in range(1, 10)]
 
-def print_board(board: list[str]) -> None:
-    """Prints the game board
+    def __init__(self) -> None:
+        self.board: list[str] = self.STARTING_BOARD[:]
+        self.player_mark = "X"
 
-    Args:
-        board (list): The game board
-    """
+    def print_board(self) -> None:
+        """Prints the game board"""
 
-    print(
-        textwrap.dedent(
-            f"""
-             {board[6]} | {board[7]} | {board[8]}
-            -----------
-             {board[3]} | {board[4]} | {board[5]}
-            -----------
-             {board[0]} | {board[1]} | {board[2]}
-            """
-        )
-    )
-
-
-def get_next_player_move(player_mark: str) -> int:
-    """Prompts a player for their next mark location
-
-    Args:
-        player_mark (str)
-
-    Returns:
-        int: Player's chosen mark location
-    """
-
-    while True:
-        try:
-            player_move = int(
-                input(f"\tPlayer '{player_mark}', your turn. Where's your move? ")
+        print(
+            textwrap.dedent(
+                f"""
+                 {self.board[6]} | {self.board[7]} | {self.board[8]}
+                -----------
+                 {self.board[3]} | {self.board[4]} | {self.board[5]}
+                -----------
+                 {self.board[0]} | {self.board[1]} | {self.board[2]}
+                """
             )
+        )
 
-            if not 1 <= player_move <= 9:
-                raise ValueError
-            return player_move - 1
+    def change_player(self) -> None:
+        self.player_mark = "O" if self.player_mark == "X" else "X"
 
-        except ValueError:
-            print("\nInvalid input. Please enter a number between 1 and 9!")
+    def get_next_player_move(self) -> int:
+        """Prompts a player for their next mark location
 
+        Returns:
+            int: Player's chosen mark location
+        """
 
-def check_win(board: list[str]) -> bool:
-    """Checks if a player has won the game
+        while True:
+            try:
+                player_move = int(
+                    input(
+                        f"\tPlayer '{self.player_mark}', your turn. Where's your move? "
+                    )
+                )
+                if not 1 <= player_move <= len(self.board):
+                    raise ValueError
+                return player_move - 1
 
-    Args:
-        board (list): The game board to check
+            except ValueError:
+                print("\nInvalid input. Please enter a number between 1 and 9!")
 
-    Returns:
-        bool: Whether a player has won
-    """
+    def check_win(self) -> bool:
+        """Checks if a player has won the game
 
-    WINNING_COMBINATIONS = [
-        # Rows
-        (0, 1, 2),
-        (3, 4, 5),
-        (6, 7, 8),
-        # Columns
-        (0, 3, 6),
-        (1, 4, 7),
-        (2, 5, 8),
-        # Diagonals
-        (0, 4, 8),
-        (2, 4, 6),
-    ]
+        Returns:
+            bool: Whether a player has won
+        """
 
-    for combination in WINNING_COMBINATIONS:
-        if board[combination[0]] == board[combination[1]] == board[combination[2]]:
-            return True
-    return False
+        WINNING_COMBINATIONS = [
+            # Rows
+            (0, 1, 2),
+            (3, 4, 5),
+            (6, 7, 8),
+            # Columns
+            (0, 3, 6),
+            (1, 4, 7),
+            (2, 5, 8),
+            # Diagonals
+            (0, 4, 8),
+            (2, 4, 6),
+        ]
 
+        for combination in WINNING_COMBINATIONS:
+            if (
+                self.board[combination[0]]
+                == self.board[combination[1]]
+                == self.board[combination[2]]
+            ):
+                return True
+        return False
 
-def check_tie(board: list[str]) -> bool:
-    """Checks if the game has ended on a tie
+    def check_tie(self) -> bool:
+        """Checks if the game has ended on a tie
 
-    Args:
-        board (list): The game board to check
+        Returns:
+            bool: Whether a tie exists
+        """
 
-    Returns:
-        bool: Whether a tie exists
-    """
+        for mark in self.board:
+            if mark not in {"X", "O"}:
+                return False
+        return True
 
-    for mark in board:
-        if mark not in {"X", "O"}:
-            return False
-    return True
+    def should_play_again(self) -> bool:
+        """Prompts player to check if they would like to keep playing
 
+        Returns:
+            bool: Whether user wants to play
+        """
 
-def should_play_again() -> bool:
-    """Prompts player to check if they would like to keep playing
-
-    Returns:
-        bool: Whether user wants to play
-    """
-
-    replay = None
-    while replay not in {"y", "n"}:
-        if replay is not None:
+        while True:
+            replay = input("Do you want to play again? - y or n: ").lower()
+            if replay in {"y", "n"}:
+                return replay == "y"
             print("Please, enter 'y' or 'n'")
 
-        replay = input("Do you want to play again? - y or n: ").lower()
+    def run(self) -> None:
+        # Clear the terminal
+        os.system("clear" if os.name == "posix" else "cls")
 
-    return replay == "y"
+        print("Welcome to Tic Tac Toe!")
 
+        while True:
+            # Player move
+            self.print_board()
+            player_move = self.get_next_player_move()
+            self.board[player_move] = self.player_mark
 
-def main() -> None:
-    # Clear the terminal
-    if os.name == "posix":
-        os.system("clear")
-    else:
-        os.system("cls")
+            if (win := self.check_win()) or self.check_tie():
+                self.print_board()
+                if win:
+                    print(f"\t***** Player '{self.player_mark}', you win! *****\n")
+                else:
+                    print("\t***** It's a tie! *****\n")
 
-    # Introduce and initialize the game
-    print("Welcome to Tic Tac Toe!")
-    player_mark = "X"
-    board = STARTING_BOARD[:]
+                if self.should_play_again():
+                    self.board = self.STARTING_BOARD[:]
+                else:
+                    print("\nSee you later!\n")
+                    break
 
-    while True:
-        # Player move
-        print_board(board)
-        player_move = get_next_player_move(player_mark)
-        board[player_move] = player_mark
-
-        if (win := check_win(board)) or check_tie(board):
-            print_board(board)
-            if win:
-                print(f"\t***** Player '{player_mark}', you win! *****\n")
-            else:
-                print("\t***** It's a tie! *****\n")
-
-            if should_play_again():
-                board = STARTING_BOARD[:]
-            else:
-                print("\nSee you later!\n")
-                break
-
-        player_mark = "O" if player_mark == "X" else "X"
+            self.change_player()
 
 
 if __name__ == "__main__":
-    main()
+    game = TicTacToe()
+    game.run()
