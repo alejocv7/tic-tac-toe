@@ -1,8 +1,6 @@
-"""
-This is a two player Tic-tac-toe game
+"""This is a two player Tic-tac-toe game
 
-The players take turns to input their marks on the board.
-The board is represented as a common number pad:
+Players take turns to input their marks on the board, represented as a number pad:
 
  7 | 8 | 9
 -----------
@@ -20,7 +18,7 @@ class TicTacToe:
 
     def __init__(self) -> None:
         self.board: list[str] = self.STARTING_BOARD[:]
-        self.player_mark = "X"
+        self.player = "X"
 
     def print_board(self) -> None:
         """Prints the game board"""
@@ -38,7 +36,18 @@ class TicTacToe:
         )
 
     def change_player(self) -> None:
-        self.player_mark = "O" if self.player_mark == "X" else "X"
+        self.player = "O" if self.player == "X" else "X"
+
+    def is_valid_move(self, move: int) -> bool:
+        """Checks whether a new move is valid based on board index and occupied spots
+
+        Args:
+            move (int): Player move
+
+        Returns:
+            bool: Whether the move is within board's len and not on an ocupied spot
+        """
+        return 1 <= move <= len(self.board) and self.board[move - 1] not in {"X", "O"}
 
     def get_next_player_move(self) -> int:
         """Prompts a player for their next mark location
@@ -49,14 +58,12 @@ class TicTacToe:
 
         while True:
             try:
-                player_move = int(
-                    input(
-                        f"\tPlayer '{self.player_mark}', your turn. Where's your move? "
-                    )
+                move = int(
+                    input(f"\tPlayer '{self.player}', your turn. Where's your move? ")
                 )
-                if not 1 <= player_move <= len(self.board):
+                if not self.is_valid_move(move):
                     raise ValueError
-                return player_move - 1
+                return move - 1
 
             except ValueError:
                 print("\nInvalid input. Please enter a number between 1 and 9!")
@@ -126,12 +133,12 @@ class TicTacToe:
             # Player move
             self.print_board()
             player_move = self.get_next_player_move()
-            self.board[player_move] = self.player_mark
+            self.board[player_move] = self.player
 
             if (win := self.check_win()) or self.check_tie():
                 self.print_board()
                 if win:
-                    print(f"\t***** Player '{self.player_mark}', you win! *****\n")
+                    print(f"\t***** Player '{self.player}', you win! *****\n")
                 else:
                     print("\t***** It's a tie! *****\n")
 
