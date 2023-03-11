@@ -6,6 +6,12 @@ build-backend = "hatchling.build"
 name = "tic_tac_toe"
 version = "1.0.0"
 
+[tool.hatch.build.targets.sdist]
+include = [
+  "/src",
+  "/tests",
+]
+
 [tool.pytest.ini_options]
 addopts = [
     "--import-mode=importlib",
@@ -16,9 +22,3 @@ addopts = [
 
 [tool.mypy]
 strict = true
-
-[tool.hatch.build.targets.sdist]
-include = [
-  "/src",
-  "/tests",
-]
