@@ -14,11 +14,18 @@ import textwrap
 
 
 class TicTacToe:
-    STARTING_BOARD = [str(num) for num in range(1, 10)]
+    ROWS, COLS = 3, 3
 
     def __init__(self) -> None:
-        self.board: list[str] = self.STARTING_BOARD[:]
+        self.board = self.get_clean_board()
         self.player = "X"
+
+    def get_clean_board(self) -> list[list[str | int]]:
+        """Generate a clean state board"""
+        return [
+            [(row * self.COLS) + col + 1 for col in range(self.COLS)]
+            for row in range(self.ROWS)
+        ]
 
     def print_board(self) -> None:
         """Prints the game board"""
@@ -26,11 +33,11 @@ class TicTacToe:
         print(
             textwrap.dedent(
                 f"""
-                 {self.board[6]} | {self.board[7]} | {self.board[8]}
+                 {" | ".join(map(str, self.board[2]))}
                 -----------
-                 {self.board[3]} | {self.board[4]} | {self.board[5]}
+                 {" | ".join(map(str, self.board[1]))}
                 -----------
-                 {self.board[0]} | {self.board[1]} | {self.board[2]}
+                 {" | ".join(map(str, self.board[0]))}
                 """
             )
         )
@@ -38,7 +45,18 @@ class TicTacToe:
     def change_player(self) -> None:
         self.player = "O" if self.player == "X" else "X"
 
-    def is_valid_move(self, move: int) -> bool:
+    def get_row_col_from_move(self, move: int) -> tuple[int, int]:
+        """Map the user move number to row and col
+
+        Args:
+            move (int): User input move from 1 to ROWS * COLS
+
+        Returns:
+            tuple[int, int]: row, col equivalents of the game board
+        """
+        return (move - 1) // self.ROWS, (move - 1) % self.COLS
+
+    def is_valid_idx(self, row: int, col: int) -> bool:
         """Checks whether a new move is valid based on board index and occupied spots
 
         Args:
@@ -47,9 +65,13 @@ class TicTacToe:
         Returns:
             bool: Whether the move is within board's len and not on an ocupied spot
         """
-        return 1 <= move <= len(self.board) and self.board[move - 1] not in {"X", "O"}
+        return (
+            0 <= row < self.ROWS
+            and 0 <= col < self.COLS
+            and self.board[row][col] not in {"X", "O"}
+        )
 
-    def get_next_player_move(self) -> int:
+    def get_next_player_move(self) -> tuple[int, int]:
         """Prompts a player for their next mark location
 
         Returns:
@@ -61,9 +83,10 @@ class TicTacToe:
                 move = int(
                     input(f"\tPlayer '{self.player}', your turn. Where's your move? ")
                 )
-                if not self.is_valid_move(move):
+                row, col = self.get_row_col_from_move(move)
+                if not self.is_valid_idx(row, col):
                     raise ValueError
-                return move - 1
+                return row, col
 
             except ValueError:
                 print("\nInvalid input. Please enter a number between 1 and 9!")
@@ -75,27 +98,22 @@ class TicTacToe:
             bool: Whether a player has won
         """
 
-        WINNING_COMBINATIONS = [
-            # Rows
-            (0, 1, 2),
-            (3, 4, 5),
-            (6, 7, 8),
-            # Columns
-            (0, 3, 6),
-            (1, 4, 7),
-            (2, 5, 8),
-            # Diagonals
-            (0, 4, 8),
-            (2, 4, 6),
-        ]
-
-        for combination in WINNING_COMBINATIONS:
-            if (
-                self.board[combination[0]]
-                == self.board[combination[1]]
-                == self.board[combination[2]]
-            ):
+        # Check rows
+        for row in self.board:
+            if len(set(row)) == 1:
                 return True
+
+        # Check columns
+        for col in range(self.COLS):
+            if len(set(row[col] for row in self.board)) == 1:
+                return True
+
+        # Check diagonals
+        if len(set(self.board[i][i] for i in range(self.ROWS))) == 1:
+            return True
+        if len(set(self.board[i][self.COLS - i - 1] for i in range(self.ROWS))) == 1:
+            return True
+
         return False
 
     def check_tie(self) -> bool:
@@ -105,9 +123,10 @@ class TicTacToe:
             bool: Whether a tie exists
         """
 
-        for mark in self.board:
-            if mark not in {"X", "O"}:
-                return False
+        for row in self.board:
+            for mark in row:
+                if mark not in {"X", "O"}:
+                    return False
         return True
 
     def should_play_again(self) -> bool:
@@ -132,18 +151,17 @@ class TicTacToe:
         while True:
             # Player move
             self.print_board()
-            player_move = self.get_next_player_move()
-            self.board[player_move] = self.player
+            row, col = self.get_next_player_move()
+            self.board[row][col] = self.player
 
-            if (win := self.check_win()) or self.check_tie():
+            if self.check_win() or (tie := self.check_tie()):
                 self.print_board()
-                if win:
-                    print(f"\t***** Player '{self.player}', you win! *****\n")
-                else:
-                    print("\t***** It's a tie! *****\n")
+
+                msg = "It's a tie!" if tie else f"Player '{self.player}', you win!"
+                print(f"\t***** {msg} *****\n")
 
                 if self.should_play_again():
-                    self.board = self.STARTING_BOARD[:]
+                    self.board = self.get_clean_board()
                 else:
                     print("\nSee you later!\n")
                     break
