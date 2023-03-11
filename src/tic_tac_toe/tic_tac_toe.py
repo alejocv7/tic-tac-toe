@@ -154,12 +154,11 @@ class TicTacToe:
             row, col = self.get_next_player_move()
             self.board[row][col] = self.player
 
-            if (win := self.check_win()) or self.check_tie():
+            if self.check_win() or (tie := self.check_tie()):
                 self.print_board()
-                if win:
-                    print(f"\t***** Player '{self.player}', you win! *****\n")
-                else:
-                    print("\t***** It's a tie! *****\n")
+
+                msg = "It's a tie!" if tie else f"Player '{self.player}', you win!"
+                print(f"\t***** {msg} *****\n")
 
                 if self.should_play_again():
                     self.board = self.get_clean_board()

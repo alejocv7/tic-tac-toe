@@ -282,7 +282,7 @@ def test_run_tie(capsys: pytest.CaptureFixture[str], game: TicTacToe) -> None:
     # Check that the end board was shown correctly during the game
     assert " X | X | O\n-----------\n O | O | X\n-----------\n X | X | O\n\n" in outputs
 
-    # Check that the game ended with a win
+    # Check that the game ended with a tie
     assert "\t***** It's a tie! *****\n\n" in outputs
 
 
