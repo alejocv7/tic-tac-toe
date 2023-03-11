@@ -6,7 +6,10 @@ import pytest
 
 from tic_tac_toe import TicTacToe
 
-BOARD_LEN = len(TicTacToe.STARTING_BOARD)
+ROWS = TicTacToe.ROWS
+COLS = TicTacToe.COLS
+
+# BOARD_LEN = len(TicTacToe.STARTING_BOARD)
 
 
 @pytest.fixture
@@ -18,7 +21,7 @@ def game() -> TicTacToe:
     "board, expected",
     [
         (
-            ["1", "2", "3", "4", "5", "6", "7", "8", "9"],
+            [["1", "2", "3"], ["4", "5", "6"], ["7", "8", "9"]],
             textwrap.dedent(
                 """
                  7 | 8 | 9
@@ -30,7 +33,7 @@ def game() -> TicTacToe:
             ),
         ),
         (
-            ["X", "2", "O", "4", "X", "6", "X", "8", "O"],
+            [["X", "2", "O"], ["4", "X", "6"], ["X", "8", "O"]],
             textwrap.dedent(
                 """
                  X | 8 | O
@@ -44,7 +47,10 @@ def game() -> TicTacToe:
     ],
 )
 def test_print_board(
-    capsys: pytest.CaptureFixture[str], game: TicTacToe, board: list[str], expected: str
+    capsys: pytest.CaptureFixture[str],
+    game: TicTacToe,
+    board: list[list[str | int]],
+    expected: str,
 ) -> None:
     """Test that the printed board is well formatted"""
     game.board = board
@@ -60,43 +66,62 @@ def test_change_player(game: TicTacToe, curr_mark: str, next_mark: str) -> None:
     assert game.player == next_mark
 
 
-@pytest.fixture(params=(n + 1 for n in range(BOARD_LEN)))
-def valid_move(request: pytest.FixtureRequest) -> typing.Any:
+@pytest.fixture(params=((row, col) for col in range(COLS) for row in range(ROWS)))
+def valid_idx(request: pytest.FixtureRequest) -> typing.Any:
     return request.param
 
 
-def test_is_valid(game: TicTacToe, valid_move: int) -> None:
+def test_is_valid_idx(game: TicTacToe, valid_idx: tuple[int, int]) -> None:
     """Test that an user trying to make a move on an empty spot is valid"""
-    assert game.is_valid_move(valid_move)
+    assert game.is_valid_idx(*valid_idx)
 
 
-def test_is_valid_not_valid(game: TicTacToe, valid_move: int) -> None:
+def test_is_valid_idx_ocupied(game: TicTacToe, valid_idx: tuple[int, int]) -> None:
     """Test that an user trying to make a move on an already marked spot is invalid"""
-    game.board[valid_move - 1] = "X"
-    assert not game.is_valid_move(valid_move)
+    row, col = valid_idx
+    game.board[row][col] = "X"
+    assert not game.is_valid_idx(row, col)
+
+
+@pytest.mark.parametrize(
+    "move, expected",
+    [(1, (0, 0)), (3, (0, 2)), (5, (1, 1)), (7, (2, 0)), (9, (2, 2))],
+)
+def test_get_row_col_from_move(
+    game: TicTacToe, move: int, expected: tuple[int, int]
+) -> None:
+    """Test that the calculated row, col from the player's move is correct"""
+    assert game.get_row_col_from_move(move) == expected
+
+
+@pytest.fixture(params=(n + 1 for n in range(ROWS * COLS)))
+def valid_move(request: pytest.FixtureRequest) -> int:
+    return int(request.param)
+
+
+def test_get_next_player_move_all_valid_moves(game: TicTacToe, valid_move: int) -> None:
+    """Test that get_next_player_move returns the correct board row and col"""
+    with unittest.mock.patch("builtins.input", return_value=str(valid_move)):
+        assert game.get_next_player_move() == game.get_row_col_from_move(valid_move)
 
 
 def test_get_next_player_move_with_spot_taken(game: TicTacToe, valid_move: int) -> None:
     """Test that an user trying to make a move on an already marked spot is invalid"""
-    free_spot = (valid_move % BOARD_LEN) + 1
-    game.board[valid_move - 1] = "X"
-    with unittest.mock.patch("builtins.input", side_effect=[valid_move, free_spot]):
-        assert game.get_next_player_move() == free_spot - 1
+    occupied = (valid_move % (ROWS * COLS)) + 1
+    row, col = game.get_row_col_from_move(occupied)
+    game.board[row][col] = "X"
 
-
-def test_get_next_player_move_all_valid_moves(game: TicTacToe, valid_move: int) -> None:
-    """Test that get_next_player_move returns the correct board idx = (move - 1)"""
-    with unittest.mock.patch("builtins.input", return_value=str(valid_move)):
-        assert game.get_next_player_move() == valid_move - 1
+    with unittest.mock.patch("builtins.input", side_effect=[occupied, valid_move]):
+        assert game.get_next_player_move() == game.get_row_col_from_move(valid_move)
 
 
 def test_get_next_player_move_wrong_inputs_first(game: TicTacToe) -> None:
     """Test that get_next_player_move constantly prompts the user for a valid input.
-    When the input is valid the returned value should be a board idx = (input - 1)"""
+    When the input is valid the returned value should be a board row, col idx"""
     moves = [str(n) for n in range(0, 50, 10)]
     moves += ["1.1", "x", "", "$", "9"]
     with unittest.mock.patch("builtins.input", side_effect=moves):
-        assert game.get_next_player_move() == int(moves[-1]) - 1
+        assert game.get_next_player_move() == game.get_row_col_from_move(int(moves[-1]))
 
 
 def test_should_play_again(game: TicTacToe) -> None:
@@ -117,58 +142,58 @@ class TestBoardChecks:
     WINNING_BOARDS = [
         # fmt: off
         # Horizontal wins
-        ["X", "X", "X",
-         "O", "O", "6",
-         "1", "2", "3"],
+        [["X", "X", "X"],
+         ["O", "O", "6"],
+         ["1", "2", "3"]],
 
-        ["O", "8", "9",
-         "X", "X", "X",
-         "O", "2", "3"],
+        [["O", "8", "9"],
+         ["X", "X", "X"],
+         ["O", "2", "3"]],
 
-        ["7", "8", "9",
-         "O", "O", "O",
-         "X", "X", "X"],
+        [["7", "8", "9"],
+         ["O", "O", "O"],
+         ["X", "X", "X"]],
 
         # Vertical wins
-        ["O", "X", "9",
-         "O", "X", "6",
-         "O", "2", "3"],
+        [["O", "X", "9"],
+         ["O", "X", "6"],
+         ["O", "2", "3"]],
 
-        ["7", "O", "X",
-         "4", "O", "X",
-         "1", "O", "3"],
+        [["7", "O", "X"],
+         ["4", "O", "X"],
+         ["1", "O", "3"]],
 
-        ["X", "8", "O",
-         "X", "5", "O",
-         "1", "2", "O"],
+        [["X", "8", "O"],
+         ["X", "5", "O"],
+         ["1", "2", "O"]],
 
         # Diagonal wins
-        ["X", "8", "9",
-         "4", "X", "6",
-         "1", "2", "X"],
+        [["X", "8", "9"],
+         ["4", "X", "6"],
+         ["1", "2", "X"]],
 
-        ["O", "8", "X",
-         "4", "O", "6",
-         "X", "2", "O"],
+        [["O", "8", "X"],
+         ["4", "O", "6"],
+         ["X", "2", "O"]],
         # fmt: on
     ]
 
     TIE_BOARDS = [
         # fmt: off
-        ["X", "O", "X",
-         "O", "X", "O",
-         "O", "X", "O"],
+        [["X", "O", "X"],
+         ["O", "X", "O"],
+         ["O", "X", "O"]],
 
-        ["X", "O", "X",
-         "O", "O", "X",
-         "X", "X", "O"],
+        [["X", "O", "X"],
+         ["O", "O", "X"],
+         ["X", "X", "O"]],
         # fmt: on
     ]
 
     IN_PLAY_BOARDS = [
-        ["7", "8", "9", "4", "5", "6", "1", "2", "3"],
-        ["7", "8", "O", "4", "5", "6", "X", "2", "3"],
-        ["X", "8", "9", "4", "O", "6", "1", "X", "3"],
+        [["7", "8", "9"], ["4", "5", "6"], ["1", "2", "3"]],
+        [["7", "8", "O"], ["4", "5", "6"], ["X", "2", "3"]],
+        [["X", "8", "9"], ["4", "O", "6"], ["1", "X", "3"]],
     ]
 
     @pytest.fixture
@@ -203,7 +228,7 @@ class TestBoardChecks:
         assert not game_with_adapted_board.check_tie()
 
 
-# ------ Teting gull game-run ------
+# # ------ Teting gull game-run ------
 
 GAME_MSGS = [
     "Welcome to Tic Tac Toe!",  # Game welcome message
