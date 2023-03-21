@@ -5,6 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "tic_tac_toe"
 version = "1.0.0"
+readme = "README.md"
 
 [tool.hatch.build.targets.sdist]
 include = [
@@ -22,3 +23,4 @@ addopts = [
 
 [tool.mypy]
 strict = true
+mypy_path = "src/tic_tac_toe"
