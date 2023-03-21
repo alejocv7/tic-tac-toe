@@ -11,11 +11,12 @@ Players take turns to input their marks on the board, represented as a number pa
 
 import os
 import textwrap
+from typing import Literal
 
-import board
+import tic_tac_toe
 
 
-class Board(board.Board):
+class Board(tic_tac_toe.Board):
     def show(self) -> None:
         """Prints the game board"""
 
@@ -35,7 +36,7 @@ class Board(board.Board):
 class TicTacToe:
     def __init__(self) -> None:
         self.board = Board()
-        self.player = "X"
+        self.player: Literal["X", "O"] = "X"
 
     def change_player(self) -> None:
         self.player = "O" if self.player == "X" else "X"

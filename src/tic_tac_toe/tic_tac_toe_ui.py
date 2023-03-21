@@ -1,8 +1,9 @@
 import enum
 from typing import Literal
 
-import board
 import pygame as pg
+
+import tic_tac_toe
 
 WIN_SIZE = WIDTH, HEIGHT = pg.Vector2(650)
 TILE_SIZE = WIN_SIZE // 3
@@ -23,7 +24,7 @@ class State(enum.Enum):
     game_ended = "game_ended"  # Rendering the game ended screen
 
 
-class Board(board.Board):
+class Board(tic_tac_toe.Board):
     def __init__(self, screen: pg.Surface) -> None:
         super().__init__()
         self.screen = screen

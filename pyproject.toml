@@ -23,4 +23,3 @@ addopts = [
 
 [tool.mypy]
 strict = true
-mypy_path = "src/tic_tac_toe"
