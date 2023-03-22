@@ -13,6 +13,9 @@ include = [
   "/tests",
 ]
 
+[project.scripts]
+tic_tac_toe = "tic_tac_toe.main:main"
+
 [tool.pytest.ini_options]
 addopts = [
     "--import-mode=importlib",
