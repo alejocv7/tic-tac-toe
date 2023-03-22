@@ -11,7 +11,6 @@ Players take turns to input their marks on the board, represented as a number pa
 
 import os
 import textwrap
-from typing import Literal
 
 import tic_tac_toe
 
@@ -36,10 +35,6 @@ class Board(tic_tac_toe.Board):
 class TicTacToe:
     def __init__(self) -> None:
         self.board = Board()
-        self.player: Literal["X", "O"] = "X"
-
-    def change_player(self) -> None:
-        self.player = "O" if self.player == "X" else "X"
 
     def get_row_col_from_move(self, move: int) -> tuple[int, int]:
         """Map the user move number to row and col
@@ -62,10 +57,12 @@ class TicTacToe:
         while True:
             try:
                 move = int(
-                    input(f"\tPlayer '{self.player}', your turn. Where's your move? ")
+                    input(
+                        f"\tPlayer '{self.board.mark}', your turn. Where's your move? "
+                    )
                 )
                 row, col = self.get_row_col_from_move(move)
-                self.board.insert_mark(self.player, row, col)
+                self.board.insert_mark(row, col)
             except ValueError:
                 print("\nInvalid input. Please enter a number between 1 and 9!")
             else:
@@ -98,8 +95,8 @@ class TicTacToe:
             if (win := self.board.check_win()) or self.board.check_tie():
                 self.board.show()
 
-                msg = f"Player '{self.player}', you win!" if win else "It's a tie!"
-                print(f"\t***** {msg} *****\n")
+                msg = f"Player '{self.board.mark}', you win!" if win else "It's a tie!"
+                print(f"\t***** 🎉 {msg} 🎉 *****\n")
 
                 if self.should_play_again():
                     self.board.clean()
@@ -107,7 +104,7 @@ class TicTacToe:
                     print("\nSee you later!\n")
                     break
 
-            self.change_player()
+            self.board.change_player()
 
 
 if __name__ == "__main__":

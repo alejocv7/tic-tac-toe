@@ -1,4 +1,4 @@
-import typing
+from typing import Any, Literal
 
 import pytest
 
@@ -13,8 +13,18 @@ def board() -> Board:
     return Board()
 
 
+@pytest.mark.parametrize("curr_mark, next_mark", [("X", "O"), ("O", "X")])
+def test_change_player(
+    board: Board, curr_mark: Literal["X", "O"], next_mark: str
+) -> None:
+    """Test that change_player function correctly gives the next player"""
+    board.mark = curr_mark
+    board.change_player()
+    assert board.mark == next_mark
+
+
 @pytest.fixture(params=((row, col) for col in range(COLS) for row in range(ROWS)))
-def valid_row_col(request: pytest.FixtureRequest) -> typing.Any:
+def valid_row_col(request: pytest.FixtureRequest) -> Any:
     return request.param
 
 
@@ -33,7 +43,7 @@ def test_is_valid_row_col_ocupied(board: Board, valid_row_col: tuple[int, int]) 
 @pytest.fixture(
     params=[(-1, -1), (ROWS * 10, COLS), (ROWS, COLS * 10), (ROWS * 10, COLS * 10)]
 )
-def invalid_row_col(request: pytest.FixtureRequest) -> typing.Any:
+def invalid_row_col(request: pytest.FixtureRequest) -> Any:
     return request.param
 
 
@@ -48,13 +58,13 @@ def test_insert_mark_valid(board: Board, valid_row_col: tuple[int, int]) -> None
     """Test that a mark can be inserted (no expection raised) when the input
     is in range and not on an occupied spot
     """
-    board.insert_mark("X", *valid_row_col)
+    board.insert_mark(*valid_row_col)
 
 
 def test_insert_mark_invalid(board: Board, invalid_row_col: tuple[int, int]) -> None:
     """Test that insert_mark raises an exepction when the input is outside the range"""
     with pytest.raises(ValueError):
-        board.insert_mark("X", *invalid_row_col)
+        board.insert_mark(*invalid_row_col)
 
 
 class TestBoardChecks:

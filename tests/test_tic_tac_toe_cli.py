@@ -53,16 +53,6 @@ def test_print_board(
     assert capsys.readouterr().out == expected
 
 
-@pytest.mark.parametrize("curr_mark, next_mark", [("X", "O"), ("O", "X")])
-def test_change_player(
-    game: TicTacToe, curr_mark: typing.Literal["X", "O"], next_mark: str
-) -> None:
-    """Test that change_player function correctly gives the next player"""
-    game.player = curr_mark
-    game.change_player()
-    assert game.player == next_mark
-
-
 @pytest.mark.parametrize(
     "move, expected",
     [(1, (0, 0)), (3, (0, 2)), (5, (1, 1)), (7, (2, 0)), (9, (2, 2))],
@@ -84,7 +74,7 @@ def test_make_move_all_valid_moves(game: TicTacToe, valid_move: int) -> None:
     with unittest.mock.patch("builtins.input", return_value=str(valid_move)):
         game.make_move()
         row, col = game.get_row_col_from_move(valid_move)
-        assert game.board.board[row][col] == game.player
+        assert game.board.board[row][col] == game.board.mark
 
 
 def test_make_move_with_spot_taken(game: TicTacToe, valid_move: int) -> None:
@@ -96,7 +86,7 @@ def test_make_move_with_spot_taken(game: TicTacToe, valid_move: int) -> None:
     with unittest.mock.patch("builtins.input", side_effect=[occupied, valid_move]):
         game.make_move()
         row, col = game.get_row_col_from_move(valid_move)
-        assert game.board.board[row][col] == game.player
+        assert game.board.board[row][col] == game.board.mark
 
 
 def test_make_move_wrong_inputs_first(game: TicTacToe) -> None:
@@ -107,7 +97,7 @@ def test_make_move_wrong_inputs_first(game: TicTacToe) -> None:
     with unittest.mock.patch("builtins.input", side_effect=moves):
         game.make_move()
         row, col = game.get_row_col_from_move(int(moves[-1]))
-        assert game.board.board[row][col] == game.player
+        assert game.board.board[row][col] == game.board.mark
 
 
 def test_should_play_again(game: TicTacToe) -> None:
@@ -161,7 +151,7 @@ def test_run_win(
     assert end_board in outputs
 
     # Check that the game ended with a win
-    assert f"\t***** Player '{winner}', you win! *****\n\n" in outputs
+    assert f"\t***** 🎉 Player '{winner}', you win! 🎉 *****\n\n" in outputs
 
 
 def test_run_tie(capsys: pytest.CaptureFixture[str], game: TicTacToe) -> None:
@@ -179,7 +169,7 @@ def test_run_tie(capsys: pytest.CaptureFixture[str], game: TicTacToe) -> None:
     assert " X | X | O\n-----------\n O | O | X\n-----------\n X | X | O\n\n" in outputs
 
     # Check that the game ended with a tie
-    assert "\t***** It's a tie! *****\n\n" in outputs
+    assert "\t***** 🎉 It's a tie! 🎉 *****\n\n" in outputs
 
 
 def test_run_twice_both_players_win(
@@ -206,5 +196,5 @@ def test_run_twice_both_players_win(
     assert " X | O | 9\n-----------\n O | O | X\n-----------\n X | O | 3\n\n" in outputs
 
     # Check that the game ended with a win
-    assert "\t***** Player 'X', you win! *****\n\n" in outputs
-    assert "\t***** Player 'O', you win! *****\n\n" in outputs
+    assert "\t***** 🎉 Player 'X', you win! 🎉 *****\n\n" in outputs
+    assert "\t***** 🎉 Player 'O', you win! 🎉 *****\n\n" in outputs

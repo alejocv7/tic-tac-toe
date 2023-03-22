@@ -6,6 +6,10 @@ class Board:
 
     def __init__(self) -> None:
         self.board = self.get_clean_board()
+        self.mark: Literal["X", "O"] = "X"
+
+    def change_player(self) -> None:
+        self.mark = "O" if self.mark == "X" else "X"
 
     def clean(self) -> None:
         """Reset the game board"""
@@ -37,10 +41,10 @@ class Board:
             and self.board[row][col] not in {"X", "O"}
         )
 
-    def insert_mark(self, mark: Literal["X", "O"], row: int, col: int) -> None:
+    def insert_mark(self, row: int, col: int) -> None:
         if not self.is_valid_row_col(row, col):
             raise ValueError
-        self.board[row][col] = mark
+        self.board[row][col] = self.mark
 
     def check_win(self) -> bool:
         """Checks if a player has won the game
