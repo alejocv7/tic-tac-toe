@@ -4,12 +4,7 @@ import unittest.mock
 
 import pytest
 
-from tic_tac_toe import TicTacToe
-
-ROWS = TicTacToe.ROWS
-COLS = TicTacToe.COLS
-
-# BOARD_LEN = len(TicTacToe.STARTING_BOARD)
+from tic_tac_toe import Board, TicTacToe
 
 
 @pytest.fixture
@@ -53,34 +48,9 @@ def test_print_board(
     expected: str,
 ) -> None:
     """Test that the printed board is well formatted"""
-    game.board = board
-    game.print_board()
+    game.board.board = board
+    game.board.show()
     assert capsys.readouterr().out == expected
-
-
-@pytest.mark.parametrize("curr_mark, next_mark", [("X", "O"), ("O", "X")])
-def test_change_player(game: TicTacToe, curr_mark: str, next_mark: str) -> None:
-    """Test that the change_player function correctly gives the next player"""
-    game.player = curr_mark
-    game.change_player()
-    assert game.player == next_mark
-
-
-@pytest.fixture(params=((row, col) for col in range(COLS) for row in range(ROWS)))
-def valid_idx(request: pytest.FixtureRequest) -> typing.Any:
-    return request.param
-
-
-def test_is_valid_idx(game: TicTacToe, valid_idx: tuple[int, int]) -> None:
-    """Test that an user trying to make a move on an empty spot is valid"""
-    assert game.is_valid_idx(*valid_idx)
-
-
-def test_is_valid_idx_ocupied(game: TicTacToe, valid_idx: tuple[int, int]) -> None:
-    """Test that an user trying to make a move on an already marked spot is invalid"""
-    row, col = valid_idx
-    game.board[row][col] = "X"
-    assert not game.is_valid_idx(row, col)
 
 
 @pytest.mark.parametrize(
@@ -94,34 +64,40 @@ def test_get_row_col_from_move(
     assert game.get_row_col_from_move(move) == expected
 
 
-@pytest.fixture(params=(n + 1 for n in range(ROWS * COLS)))
+@pytest.fixture(params=(n + 1 for n in range(Board.ROWS * Board.COLS)))
 def valid_move(request: pytest.FixtureRequest) -> int:
     return int(request.param)
 
 
-def test_get_next_player_move_all_valid_moves(game: TicTacToe, valid_move: int) -> None:
-    """Test that get_next_player_move returns the correct board row and col"""
+def test_make_move_all_valid_moves(game: TicTacToe, valid_move: int) -> None:
+    """Test that make_move inserts the player's mark when a valid move is passed"""
     with unittest.mock.patch("builtins.input", return_value=str(valid_move)):
-        assert game.get_next_player_move() == game.get_row_col_from_move(valid_move)
+        game.make_move()
+        row, col = game.get_row_col_from_move(valid_move)
+        assert game.board.board[row][col] == game.board.mark
 
 
-def test_get_next_player_move_with_spot_taken(game: TicTacToe, valid_move: int) -> None:
-    """Test that an user trying to make a move on an already marked spot is invalid"""
-    occupied = (valid_move % (ROWS * COLS)) + 1
+def test_make_move_with_spot_taken(game: TicTacToe, valid_move: int) -> None:
+    """Test that is invalid for an user to try to make a move on an occupied spot"""
+    occupied = (valid_move % (Board.ROWS * Board.COLS)) + 1
     row, col = game.get_row_col_from_move(occupied)
-    game.board[row][col] = "X"
+    game.board.board[row][col] = "X"
 
     with unittest.mock.patch("builtins.input", side_effect=[occupied, valid_move]):
-        assert game.get_next_player_move() == game.get_row_col_from_move(valid_move)
+        game.make_move()
+        row, col = game.get_row_col_from_move(valid_move)
+        assert game.board.board[row][col] == game.board.mark
 
 
-def test_get_next_player_move_wrong_inputs_first(game: TicTacToe) -> None:
-    """Test that get_next_player_move constantly prompts the user for a valid input.
-    When the input is valid the returned value should be a board row, col idx"""
+def test_make_move_wrong_inputs_first(game: TicTacToe) -> None:
+    """Test that make_move constantly prompts the user for a valid input.
+    When the input is finally valid the mark should be placed in the board"""
     moves = [str(n) for n in range(0, 50, 10)]
     moves += ["1.1", "x", "", "$", "9"]
     with unittest.mock.patch("builtins.input", side_effect=moves):
-        assert game.get_next_player_move() == game.get_row_col_from_move(int(moves[-1]))
+        game.make_move()
+        row, col = game.get_row_col_from_move(int(moves[-1]))
+        assert game.board.board[row][col] == game.board.mark
 
 
 def test_should_play_again(game: TicTacToe) -> None:
@@ -136,96 +112,6 @@ def test_should_play_again_no_play(game: TicTacToe) -> None:
     input. When the valid input is "n" the return value should be False"""
     with unittest.mock.patch("builtins.input", side_effect=["t", "3", "", "n"]):
         assert not game.should_play_again()
-
-
-class TestBoardChecks:
-    WINNING_BOARDS = [
-        # fmt: off
-        # Horizontal wins
-        [["X", "X", "X"],
-         ["O", "O", "6"],
-         ["1", "2", "3"]],
-
-        [["O", "8", "9"],
-         ["X", "X", "X"],
-         ["O", "2", "3"]],
-
-        [["7", "8", "9"],
-         ["O", "O", "O"],
-         ["X", "X", "X"]],
-
-        # Vertical wins
-        [["O", "X", "9"],
-         ["O", "X", "6"],
-         ["O", "2", "3"]],
-
-        [["7", "O", "X"],
-         ["4", "O", "X"],
-         ["1", "O", "3"]],
-
-        [["X", "8", "O"],
-         ["X", "5", "O"],
-         ["1", "2", "O"]],
-
-        # Diagonal wins
-        [["X", "8", "9"],
-         ["4", "X", "6"],
-         ["1", "2", "X"]],
-
-        [["O", "8", "X"],
-         ["4", "O", "6"],
-         ["X", "2", "O"]],
-        # fmt: on
-    ]
-
-    TIE_BOARDS = [
-        # fmt: off
-        [["X", "O", "X"],
-         ["O", "X", "O"],
-         ["O", "X", "O"]],
-
-        [["X", "O", "X"],
-         ["O", "O", "X"],
-         ["X", "X", "O"]],
-        # fmt: on
-    ]
-
-    IN_PLAY_BOARDS = [
-        [["7", "8", "9"], ["4", "5", "6"], ["1", "2", "3"]],
-        [["7", "8", "O"], ["4", "5", "6"], ["X", "2", "3"]],
-        [["X", "8", "9"], ["4", "O", "6"], ["1", "X", "3"]],
-    ]
-
-    @pytest.fixture
-    def game_with_adapted_board(
-        self, request: pytest.FixtureRequest, game: TicTacToe
-    ) -> TicTacToe:
-        game.board = request.param
-        return game
-
-    @pytest.mark.parametrize("game_with_adapted_board", WINNING_BOARDS, indirect=True)
-    def test_check_win_with_winner(self, game_with_adapted_board: TicTacToe) -> None:
-        """Test that check_win returns True when there is a winner"""
-        assert game_with_adapted_board.check_win()
-
-    @pytest.mark.parametrize(
-        "game_with_adapted_board", TIE_BOARDS + IN_PLAY_BOARDS, indirect=True
-    )
-    def test_check_win_no_winner(self, game_with_adapted_board: TicTacToe) -> None:
-        """Test that check_win returns False if there are no winners"""
-        assert not game_with_adapted_board.check_win()
-
-    @pytest.mark.parametrize("game_with_adapted_board", TIE_BOARDS, indirect=True)
-    def test_check_tie_with_tie(self, game_with_adapted_board: TicTacToe) -> None:
-        """Test that check_tie returns True with boards containing a tie"""
-        assert game_with_adapted_board.check_tie()
-
-    @pytest.mark.parametrize(
-        "game_with_adapted_board", WINNING_BOARDS + IN_PLAY_BOARDS, indirect=True
-    )
-    def test_check_tie_no_tie(self, game_with_adapted_board: TicTacToe) -> None:
-        """Test that check_tie returns False with boards that don't have a tie"""
-        assert not game_with_adapted_board.check_tie()
 
 
 # # ------ Teting gull game-run ------
@@ -265,7 +151,7 @@ def test_run_win(
     assert end_board in outputs
 
     # Check that the game ended with a win
-    assert f"\t***** Player '{winner}', you win! *****\n\n" in outputs
+    assert f"\t***** 🎉 Player '{winner}', you win! 🎉 *****\n\n" in outputs
 
 
 def test_run_tie(capsys: pytest.CaptureFixture[str], game: TicTacToe) -> None:
@@ -283,7 +169,7 @@ def test_run_tie(capsys: pytest.CaptureFixture[str], game: TicTacToe) -> None:
     assert " X | X | O\n-----------\n O | O | X\n-----------\n X | X | O\n\n" in outputs
 
     # Check that the game ended with a tie
-    assert "\t***** It's a tie! *****\n\n" in outputs
+    assert "\t***** 🎉 It's a tie! 🎉 *****\n\n" in outputs
 
 
 def test_run_twice_both_players_win(
@@ -310,5 +196,5 @@ def test_run_twice_both_players_win(
     assert " X | O | 9\n-----------\n O | O | X\n-----------\n X | O | 3\n\n" in outputs
 
     # Check that the game ended with a win
-    assert "\t***** Player 'X', you win! *****\n\n" in outputs
-    assert "\t***** Player 'O', you win! *****\n\n" in outputs
+    assert "\t***** 🎉 Player 'X', you win! 🎉 *****\n\n" in outputs
+    assert "\t***** 🎉 Player 'O', you win! 🎉 *****\n\n" in outputs

@@ -1,5 +1,4 @@
-from .tic_tac_toe import TicTacToe
+from .board import Board
+from .tic_tac_toe_cli import TicTacToe
 
-__all__ = [
-    "TicTacToe",
-]
+__all__ = ["TicTacToe", "Board"]
