@@ -15,8 +15,8 @@ This project uses Python and PyGame to create the classic Tic-Tac-Toe game for t
 
 ## How to run this program
 1. Download this project
-2. Open the temrinal and install the project using: `pip install .`
-3. Run the game:
+2. Open the terminal and install pygame: `pip install pygame`
+3. Install this project using: `pip install .`
+4. Run the game:
     * For the GUI mode use the command: `tic_tac_toe`
     * For the terminal mode use the command: `tic_tac_toe --cli`
-
