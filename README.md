@@ -1,8 +1,22 @@
 # Tic-Tac-Toe game in Python
 
 ## SUMMARY
-This project uses Python to create the classic Tic-Tac-Toe game for two players. An updating board shows the possible moves with each player's turn and displays a winning/losing notification at the end of the game.
+This project uses Python and PyGame to create the classic Tic-Tac-Toe game for two players. The game can be played on the terminal or as a GUI.
 
-<p align="center"><img src="assets/starting.png" width="500"></p>
-<p align="center"><img src="assets/win.png" width="300" height="250"></p>
+### GUI mode:
+<p align="center">
+    <img src="assets/ui_in_process.png" width="250" height="250">
+    <img src="assets/ui_finished.png" width="250" height="250">
+</p>
+
+### Terminal mode:
+<p align="center"><img src="assets/cli_starting.png" width="400"></p>
+<p align="center"><img src="assets/cli_win.png" width="250" height="200"></p>
+
+## How to run this program
+1. Download this project
+2. Open the temrinal and install the project using: `pip install .`
+3. Run the game:
+    * For the GUI mode use the command: `tic_tac_toe`
+    * For the terminal mode use the command: `tic_tac_toe --cli`
 
