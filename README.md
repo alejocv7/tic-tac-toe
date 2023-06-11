@@ -5,13 +5,13 @@ This project uses Python and PyGame to create the classic Tic-Tac-Toe game for t
 
 ### GUI mode:
 <p align="center">
-    <img src="assets/ui_in_process.png" width="250" height="250">
-    <img src="assets/ui_finished.png" width="250" height="250">
+    <img src="assets/ui_in_process.png" width="33%">
+    <img src="assets/ui_finished.png" width="33%">
 </p>
 
 ### Terminal mode:
-<p align="center"><img src="assets/cli_starting.png" width="400"></p>
-<p align="center"><img src="assets/cli_win.png" width="250" height="200"></p>
+<p align="center"><img src="assets/cli_starting.png" width="50%"></p>
+<p align="center"><img src="assets/cli_win.png" width="25%"></p>
 
 ## How to run this program
 1. Download this project
